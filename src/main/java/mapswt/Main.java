@@ -11,6 +11,8 @@ public class Main {
         System.out.println("parse file ...");
         File file = new File("test_data/aware.geojson");
         FeatureCollection coll = GeoJSON.read(file);
+        Map.show(coll);
+        /**
         System.out.println(coll.features.size() + " features");
         System.out.println("calculate bounds ...");
         Bounds bounds = Bounds.of(coll);
@@ -20,5 +22,6 @@ public class Main {
         System.out.println("calculate bounds ...");
         bounds = Bounds.of(coll);
         System.out.println(bounds);
+         */
     }
 }

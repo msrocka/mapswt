@@ -7,10 +7,18 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.openlca.geo.geojson.Feature;
+import org.openlca.geo.geojson.FeatureCollection;
+import org.openlca.geo.geojson.LineString;
+import org.openlca.geo.geojson.Point;
+import org.openlca.geo.geojson.Polygon;
 
 public class Map {
 
-    public static void show() {
+    public static void show(FeatureCollection coll) {
+
+        FeatureCollection projection = new WebMercator(0).project(coll);
+
         Display display = new Display();
         Shell shell = new Shell();
         shell.setSize(800, 800);
@@ -18,23 +26,16 @@ public class Map {
 
         Canvas canvas = new Canvas(shell, SWT.NONE);
         canvas.addPaintListener(e -> {
-            Random rand = new Random();
-            int width = canvas.getBounds().width;
-            int height = canvas.getBounds().height;
-            e.gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-            e.gc.fillRectangle(0, 0, width, height);
-
-            int size = 500;
-
-            int[] points = new int[size];
-            for (int i = 0; i < size / 2; i++) {
-                points[i * 2] = rand.nextInt(width);
-                points[i * 2 + 1] = rand.nextInt(height);
+            e.gc.setBackground(display.getSystemColor(SWT.COLOR_BLUE));
+            for (Feature f : projection.features) {
+                if (f == null || f.geometry == null)
+                    continue;
+                if (!(f.geometry instanceof Polygon))
+                    continue;
+                Polygon polygon = (Polygon) f.geometry;
+                int[] points = translate(polygon, 800, 800);
+                e.gc.fillPolygon(points);
             }
-            points[size - 2] = points[0];
-            points[size - 1] = points[1];
-            e.gc.setBackground(display.getSystemColor(SWT.COLOR_BLACK));
-            e.gc.fillPolygon(points);
         });
 
         shell.open();
@@ -44,6 +45,19 @@ public class Map {
             }
         }
         display.dispose();
+    }
+
+    private static int[] translate(Polygon polygon, int width, int height) {
+        if (polygon == null || polygon.rings.size() < 1)
+            return null;
+        LineString ring = polygon.rings.get(0);
+        int[] seq = new int[ring.points.size() * 2];
+        for (int i = 0; i < ring.points.size(); i++) {
+            Point p = ring.points.get(i);
+            seq[2 * i] = (int) (p.x * width);
+            seq[2 * i + 1] = (int) (p.y * height);
+        }
+        return seq;
     }
 
 }

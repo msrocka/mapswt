@@ -4,3 +4,6 @@
 .classpath
 .project
 *.iml
+/test_data/
+/.vscode/
+

@@ -15,5 +15,10 @@ public class Main {
         System.out.println("calculate bounds ...");
         Bounds bounds = Bounds.of(coll);
         System.out.println(bounds);
+        System.out.println("project ...");
+        coll = new WebMercator(0).project(coll);
+        System.out.println("calculate bounds ...");
+        bounds = Bounds.of(coll);
+        System.out.println(bounds);
     }
 }

@@ -30,7 +30,7 @@ public class Map {
         Display display = new Display();
 
         grey = new Color(display, new RGB(207, 216, 220));
-        color1 = new Color(display, new RGB(140, 158, 255));
+        color1 = new Color(display, new RGB(255, 255, 179));
         color2 = new Color(display, new RGB(255, 255, 141));
         color3 = new Color(display, new RGB(255, 158, 128));
         color4 = new Color(display, new RGB(255, 61, 0));
@@ -92,6 +92,7 @@ public class Map {
         double v = ((Number) val).doubleValue();
         if (v < 0)
             return grey;
+        v = Math.log10(v) * 100 / 2;
         if (v < 10)
             return color1;
         if (v < 30)

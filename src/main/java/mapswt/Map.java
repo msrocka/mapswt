@@ -28,6 +28,7 @@ public class Map {
         FeatureCollection projection = new WebMercator(0).project(coll);
 
         Display display = new Display();
+        ColorScale colorScale = new ColorScale(display, 0, 100);
 
         grey = new Color(display, new RGB(207, 216, 220));
         color1 = new Color(display, new RGB(255, 255, 179));
@@ -53,7 +54,7 @@ public class Map {
                     continue;
                 Polygon polygon = (Polygon) f.geometry;
                 int[] points = translate(polygon, cb.width, cb.height);
-                Color color = getColor(f);
+                Color color = getColor(f, colorScale);
                 e.gc.setBackground(color);
                 e.gc.fillPolygon(points);
             }
@@ -65,6 +66,7 @@ public class Map {
                 display.sleep();
             }
         }
+        colorScale.dispose();
         display.dispose();
     }
 
@@ -81,7 +83,7 @@ public class Map {
         return seq;
     }
 
-    private static Color getColor(Feature f) {
+    private static Color getColor(Feature f, ColorScale scale) {
         if (f == null || f.properties == null)
             return grey;
         Object val = f.properties != null
@@ -92,6 +94,11 @@ public class Map {
         double v = ((Number) val).doubleValue();
         if (v < 0)
             return grey;
+        
+        v = Math.log10(v) * 100 / 2;
+        return scale.get(v);
+
+        /*
         v = Math.log10(v) * 100 / 2;
         if (v < 10)
             return color1;
@@ -102,6 +109,7 @@ public class Map {
         if (v < 75)
             return color4;
         return color5;
+        */
     }
 
 }

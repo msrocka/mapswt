@@ -2,12 +2,11 @@ package mapswt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.openlca.geo.geojson.Feature;
 import org.openlca.geo.geojson.FeatureCollection;
 import org.openlca.geo.geojson.LineString;
@@ -16,61 +15,126 @@ import org.openlca.geo.geojson.Polygon;
 
 public class Map {
 
-    private static Color grey;
-    private static Color color1;
-    private static Color color2;
-    private static Color color3;
-    private static Color color4;
-    private static Color color5;
+    private final Canvas canvas;
+    private final Color grey;
+    private final Color white;
+    private final Color black;
 
-    public static void show(FeatureCollection coll) {
+    private ColorScale colorScale;
+    private FeatureCollection features;
+    private FeatureCollection projection;
+    private String parameter;
+    private int zoom = 0;
 
-        FeatureCollection projection = new WebMercator(0).project(coll);
-
-        Display display = new Display();
-        ColorScale colorScale = new ColorScale(display, 0, 100);
-
-        grey = new Color(display, new RGB(207, 216, 220));
-        color1 = new Color(display, new RGB(255, 255, 179));
-        color2 = new Color(display, new RGB(255, 255, 141));
-        color3 = new Color(display, new RGB(255, 158, 128));
-        color4 = new Color(display, new RGB(255, 61, 0));
-        color5 = new Color(display, new RGB(163, 0, 0));
-
-        Shell shell = new Shell();
-        shell.setSize(800, 800);
-        shell.setLayout(new FillLayout());
-
-        Canvas canvas = new Canvas(shell, SWT.NONE);
-        canvas.addPaintListener(e -> {
-            Rectangle cb = canvas.getBounds();
-            e.gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-            e.gc.fillRectangle(cb);
-
-            for (Feature f : projection.features) {
-                if (f == null || f.geometry == null)
-                    continue;
-                if (!(f.geometry instanceof Polygon))
-                    continue;
-                Polygon polygon = (Polygon) f.geometry;
-                int[] points = translate(polygon, cb.width, cb.height);
-                Color color = getColor(f, colorScale);
-                e.gc.setBackground(color);
-                e.gc.fillPolygon(points);
-            }
-        });
-
-        shell.open();
-        while (!shell.isDisposed()) {
-            if (!display.readAndDispatch()) {
-                display.sleep();
-            }
-        }
-        colorScale.dispose();
-        display.dispose();
+    public Map(Composite parent) {
+        this.canvas = new Canvas(parent, SWT.NONE);
+        Display disp = parent.getDisplay();
+        grey = disp.getSystemColor(SWT.COLOR_GRAY);
+        white = disp.getSystemColor(SWT.COLOR_WHITE);
+        black = disp.getSystemColor(SWT.COLOR_BLACK);
+        canvas.addPaintListener(e -> render(e.gc));
     }
 
-    private static int[] translate(Polygon polygon, int width, int height) {
+    public void show(FeatureCollection coll) {
+        features = coll;
+        parameter = null;
+        if (colorScale != null) {
+            colorScale.dispose();
+            colorScale = null;
+        }
+        if (coll == null) {
+            projection = null;
+        } else {
+            projection = new WebMercator(zoom).project(coll);
+        }
+        canvas.redraw();
+    }
+
+    public void show(FeatureCollection coll, String parameter) {
+        if (coll == null || parameter == null) {
+            show(coll);
+            return;
+        }
+        features = coll;
+        this.parameter = parameter;
+        projection = new WebMercator(zoom).project(coll);
+
+        boolean init = false;
+        double min = 0;
+        double max = 0;
+        for (Feature f : coll.features) {
+            if (f.properties == null || f.geometry == null)
+                continue;
+            Object val = f.properties.get(parameter);
+            if (!(val instanceof Number))
+                continue;
+            double v = ((Number) val).doubleValue();
+            if (v < -99) // TODO: fix AWARE
+                continue;
+            if (!init) {
+                min = v;
+                max = v;
+                init = true;
+            } else {
+                min = Math.min(min, v);
+                max = Math.max(max, v);
+            }
+        }
+
+        if (colorScale != null) {
+            colorScale.dispose();
+        }
+        colorScale = new ColorScale(canvas.getDisplay(), min, max);
+        canvas.redraw();
+    }
+
+    private void render(GC gc) {
+
+        // white background
+        Rectangle bounds = canvas.getBounds();
+        gc.setBackground(white);
+        gc.fillRectangle(bounds);
+
+        if (projection == null)
+            return;
+        if (parameter == null) {
+            gc.setBackground(black);
+        }
+
+        for (Feature f : projection.features) {
+            if (f == null || f.geometry == null)
+                continue;
+            // TODO: currently only polygons are displayed
+            // TODO: fill inner rings as white polygons
+            // overlapping features can anyhow cause problems
+            if (!(f.geometry instanceof Polygon))
+                continue;
+            Polygon polygon = (Polygon) f.geometry;
+            int[] points = translate(polygon, bounds.width, bounds.height);
+
+            if (parameter == null) {
+                gc.drawPolygon(points);
+            } else {
+                Color color = getColor(f);
+                gc.setBackground(color);
+                gc.fillPolygon(points);
+            }
+        }
+    }
+
+    private Color getColor(Feature f) {
+        if (f == null || f.properties == null)
+            return grey;
+        if (colorScale == null || parameter == null)
+            return grey;
+        Object val = f.properties.get(parameter);
+        if (!(val instanceof Number))
+            return grey;
+        double v = ((Number) val).doubleValue();
+        return colorScale.get(v);
+    }
+
+    private int[] translate(Polygon polygon, int width, int height) {
         if (polygon == null || polygon.rings.size() < 1)
             return null;
         LineString ring = polygon.rings.get(0);
@@ -82,34 +146,4 @@ public class Map {
         }
         return seq;
     }
-
-    private static Color getColor(Feature f, ColorScale scale) {
-        if (f == null || f.properties == null)
-            return grey;
-        Object val = f.properties != null
-                ? f.properties.get("Annual non-agri")
-                : null;
-        if (!(val instanceof Number))
-            return grey;
-        double v = ((Number) val).doubleValue();
-        if (v < 0)
-            return grey;
-        
-        v = Math.log10(v) * 100 / 2;
-        return scale.get(v);
-
-        /*
-        v = Math.log10(v) * 100 / 2;
-        if (v < 10)
-            return color1;
-        if (v < 30)
-            return color2;
-        if (v < 50)
-            return color3;
-        if (v < 75)
-            return color4;
-        return color5;
-        */
-    }
-
 }

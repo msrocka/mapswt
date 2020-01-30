@@ -21,8 +21,8 @@ public class Main {
         shell.setSize(800, 800);
         shell.setLayout(new FillLayout());
         Map map = new Map(shell);
-        // map.show(coll, "Annual non-agri");
-        map.show(coll);
+        map.show(coll, "Annual non-agri");
+        // map.show(coll);
 
         shell.open();
         while (!shell.isDisposed()) {

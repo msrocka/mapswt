@@ -22,7 +22,7 @@ public class ColorScale {
             // blue => white
             for (int i = 0; i < 50; i++) {
                 double s = 1 - i * (0.9 / 49);
-                colors[i] = new Color(display, new RGB(220f, (float) s, 1f));
+                colors[i] = new Color(display, new RGB(197f, (float) s, 1f));
             }
             // white => orange
             for (int i = 50; i < 100; i++) {

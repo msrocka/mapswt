@@ -118,6 +118,8 @@ public class Map {
                 Color color = getColor(f);
                 gc.setBackground(color);
                 gc.fillPolygon(points);
+                gc.setBackground(black);
+                gc.drawPolygon(points);
             }
         }
     }

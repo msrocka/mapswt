@@ -149,6 +149,13 @@ public class Bounds {
         }
     }
 
+    public Point center() {
+        Point center = new Point();
+        center.x = minX + maxX / 2;
+        center.y = minY + maxY / 2;
+        return center;
+    }
+
     @Override
     public String toString() {
         if (isNil) {

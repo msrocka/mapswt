@@ -45,7 +45,7 @@ public class Map {
         if (coll == null) {
             projection = null;
         } else {
-            projection = new WebMercator(zoom).project(coll);
+            projection = WebMercator.apply(coll, zoom);
         }
         canvas.redraw();
     }
@@ -57,7 +57,7 @@ public class Map {
         }
         features = coll;
         this.parameter = parameter;
-        projection = new WebMercator(zoom).project(coll);
+        projection = WebMercator.apply(coll, zoom);
 
         boolean init = false;
         double min = 0;

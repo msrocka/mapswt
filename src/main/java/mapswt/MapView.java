@@ -13,7 +13,7 @@ import org.openlca.geo.geojson.LineString;
 import org.openlca.geo.geojson.Point;
 import org.openlca.geo.geojson.Polygon;
 
-public class Map {
+public class MapView {
 
     private final Canvas canvas;
     private final Color grey;
@@ -24,9 +24,11 @@ public class Map {
     private FeatureCollection features;
     private FeatureCollection projection;
     private String parameter;
-    private int zoom = 0;
 
-    public Map(Composite parent) {
+    private int zoom = 0;
+    private Point center = new Point();
+
+    public MapView(Composite parent) {
         this.canvas = new Canvas(parent, SWT.NONE);
         Display disp = parent.getDisplay();
         grey = disp.getSystemColor(SWT.COLOR_GRAY);
@@ -88,12 +90,14 @@ public class Map {
         canvas.redraw();
     }
 
+
     private void render(GC gc) {
 
+        Rectangle canvasSize = canvas.getBounds();
+
         // white background
-        Rectangle bounds = canvas.getBounds();
         gc.setBackground(white);
-        gc.fillRectangle(bounds);
+        gc.fillRectangle(canvasSize);
 
         if (projection == null)
             return;
@@ -101,16 +105,24 @@ public class Map {
             gc.setBackground(black);
         }
 
+        // calculate the translation
+        Point tPoint = center.clone();
+        WebMercator.project(tPoint, zoom);
+        double translationX = (canvasSize.width / 2.0) - tPoint.x;
+        double translationY = (canvasSize.height / 2.0) - tPoint.y;
+
         for (Feature f : projection.features) {
             if (f == null || f.geometry == null)
                 continue;
+            // TODO: maybe filter out features that are
+            // not visible
             // TODO: currently only polygons are displayed
             // TODO: fill inner rings as white polygons
             // overlapping features can anyhow cause problems
             if (!(f.geometry instanceof Polygon))
                 continue;
             Polygon polygon = (Polygon) f.geometry;
-            int[] points = translate(polygon, bounds.width, bounds.height);
+            int[] points = translate(polygon, translationX, translationY);
 
             if (parameter == null) {
                 gc.drawPolygon(points);
@@ -136,15 +148,15 @@ public class Map {
         return colorScale.get(v);
     }
 
-    private int[] translate(Polygon polygon, int width, int height) {
+    private int[] translate(Polygon polygon, double tx, double ty) {
         if (polygon == null || polygon.rings.size() < 1)
             return null;
         LineString ring = polygon.rings.get(0);
         int[] seq = new int[ring.points.size() * 2];
         for (int i = 0; i < ring.points.size(); i++) {
             Point p = ring.points.get(i);
-            seq[2 * i] = (int) (p.x * width);
-            seq[2 * i + 1] = (int) (p.y * height);
+            seq[2 * i] = (int) (p.x + tx);
+            seq[2 * i + 1] = (int) (p.y + ty);
         }
         return seq;
     }

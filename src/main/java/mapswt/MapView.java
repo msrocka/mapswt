@@ -1,6 +1,8 @@
 package mapswt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
@@ -35,6 +37,31 @@ public class MapView {
         white = disp.getSystemColor(SWT.COLOR_WHITE);
         black = disp.getSystemColor(SWT.COLOR_BLACK);
         canvas.addPaintListener(e -> render(e.gc));
+
+        canvas.addMouseWheelListener(e -> {
+            // System.out.println(e.x + ", " + e.y);
+            if (e.count > 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
+    }
+
+    public void zoomIn() {
+        if (zoom >= 21)
+            return;
+        zoom+=1;
+        projection = WebMercator.apply(features, zoom);
+        canvas.redraw();
+    }
+
+    public void zoomOut() {
+        if (zoom == 0)
+            return;
+        zoom -= 1;
+        projection = WebMercator.apply(features, zoom);
+        canvas.redraw();
     }
 
     public void show(FeatureCollection coll) {
@@ -90,7 +117,6 @@ public class MapView {
         canvas.redraw();
     }
 
-
     private void render(GC gc) {
 
         Rectangle canvasSize = canvas.getBounds();
@@ -124,15 +150,13 @@ public class MapView {
             Polygon polygon = (Polygon) f.geometry;
             int[] points = translate(polygon, translationX, translationY);
 
-            if (parameter == null) {
-                gc.drawPolygon(points);
-            } else {
+            if (parameter != null) {
                 Color color = getColor(f);
                 gc.setBackground(color);
                 gc.fillPolygon(points);
                 gc.setBackground(black);
-                gc.drawPolygon(points);
             }
+            gc.drawPolygon(points);
         }
     }
 

@@ -1,16 +1,9 @@
 package mapswt;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
@@ -45,6 +38,7 @@ public class MapView {
         black = disp.getSystemColor(SWT.COLOR_BLACK);
         canvas.addPaintListener(e -> render(e.gc));
 
+        // add mouse listeners
         canvas.addMouseWheelListener(e -> {
             translation.updateCenter(e.x, e.y, zoom);
             if (e.count > 0) {
@@ -53,39 +47,7 @@ public class MapView {
                 zoomOut();
             }
         });
-
-        Point dragPoint = new Point();
-        AtomicBoolean dragMode = new AtomicBoolean(false);
-        canvas.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseDown(MouseEvent e) {
-                dragPoint.x = e.x;
-                dragPoint.y = e.y;
-                dragMode.set(true);
-
-                canvas.setCursor(
-                        canvas.getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL));
-            }
-
-            @Override
-            public void mouseUp(MouseEvent e) {
-                if (!dragMode.get())
-                    return;
-                int dx = (int) (dragPoint.x - e.x);
-                int dy = (int) (dragPoint.y - e.y);
-                if (dx != 0 || dy != 0) {
-                    Rectangle r = canvas.getBounds();
-                    translation.updateCenter(
-                            r.width / 2 + dx,
-                            r.height / 2 + dy, zoom);
-                }
-                canvas.redraw();
-                dragMode.set(false);
-                canvas.setCursor(
-                        canvas.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
-            }
-        });
-
+        canvas.addMouseListener(new DragSupport());
     }
 
     public void zoomIn() {
@@ -260,6 +222,34 @@ public class MapView {
     }
 
     private class DragSupport extends MouseAdapter {
+        int startX;
+        int startY;
 
+        @Override
+        public void mouseDown(MouseEvent e) {
+            startX = e.x;
+            startY = e.y;
+            setCursor(SWT.CURSOR_SIZEALL);
+            super.mouseDown(e);
+        }
+
+        @Override
+        public void mouseUp(MouseEvent e) {
+            int dx = startX - e.x;
+            int dy = startY  - e.y;
+            if (dx != 0 || dy != 0) {
+                Rectangle r = canvas.getBounds();
+                translation.updateCenter(
+                        r.width / 2 + dx,
+                        r.height / 2 + dy, zoom);
+            }
+            setCursor(SWT.CURSOR_ARROW);
+            canvas.redraw();
+        }
+
+        private void setCursor(int c) {
+            Display display = canvas.getDisplay();
+            canvas.setCursor(display.getSystemCursor(c));
+        }
     }
 }

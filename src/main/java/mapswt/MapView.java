@@ -100,8 +100,6 @@ public class MapView {
             if (!(val instanceof Number))
                 continue;
             double v = ((Number) val).doubleValue();
-            if (v < -99) // TODO: fix AWARE
-                continue;
             if (!init) {
                 min = v;
                 max = v;
@@ -135,10 +133,9 @@ public class MapView {
         }
 
         for (Feature f : projection.features) {
-            if (f == null || f.geometry == null)
+            if (!translation.visible(f)) {
                 continue;
-            // TODO: maybe filter out features that are
-            // not visible
+            }
             // TODO: currently only polygons are displayed
             // TODO: fill inner rings as white polygons
             // overlapping features can anyhow cause problems
@@ -191,11 +188,24 @@ public class MapView {
          */
         final Point center = new Point();
 
+        /**
+         * The projected pixel area that is visible on
+         * the canvas.
+         */
+        final Bounds view = new Bounds();
+
         void update(Rectangle canvasSize, int zoom) {
             Point t = center.clone();
             WebMercator.project(t, zoom);
-            x = (canvasSize.width / 2.0) - t.x;
-            y = (canvasSize.height / 2.0) - t.y;
+            double cWidth = canvasSize.width / 2.0;
+            double cHeight = canvasSize.height / 2.0;
+            x = cWidth - t.x;
+            y = cHeight - t.y;
+            view.minX = t.x - cWidth;
+            view.maxX = t.x + cWidth;
+            view.minY = t.y - cHeight;
+            view.maxY = t.y + cHeight;
+            view.isNil = false;
         }
 
         void updateCenter(int canvasX, int canvasY, int zoom) {
@@ -205,6 +215,18 @@ public class MapView {
             WebMercator.unproject(c, zoom);
             center.x = c.x;
             center.y = c.y;
+        }
+
+        public boolean visible(Feature f) {
+            if (f == null || f.geometry == null)
+                return false;
+            // TODO: other geometries
+            if (!(f.geometry instanceof Polygon))
+                return false;
+            Bounds bounds = Bounds.of(f.geometry);
+            return bounds.intersects(view);
+
+            //return true;
         }
 
         int[] translate(Polygon polygon) {

@@ -156,6 +156,18 @@ public class Bounds {
         return center;
     }
 
+    public boolean intersects(Bounds other) {
+        if (other == null)
+            return false;
+        // one box is on the left side of the other
+        if (maxX < other.minX || other.maxX < minX)
+            return false;
+        // one bix is under the other
+        if (maxY < other.minY || other.maxY < minY)
+            return false;
+        return true;
+    }
+
     @Override
     public String toString() {
         if (isNil) {

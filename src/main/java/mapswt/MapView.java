@@ -1,8 +1,6 @@
 package mapswt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
@@ -29,6 +27,8 @@ public class MapView {
 
     private int zoom = 0;
     private Point center = new Point();
+    double translationX;
+    double translationY;
 
     public MapView(Composite parent) {
         this.canvas = new Canvas(parent, SWT.NONE);
@@ -39,7 +39,10 @@ public class MapView {
         canvas.addPaintListener(e -> render(e.gc));
 
         canvas.addMouseWheelListener(e -> {
+
             // System.out.println(e.x + ", " + e.y);
+
+
             if (e.count > 0) {
                 zoomIn();
             } else {
@@ -134,8 +137,8 @@ public class MapView {
         // calculate the translation
         Point tPoint = center.clone();
         WebMercator.project(tPoint, zoom);
-        double translationX = (canvasSize.width / 2.0) - tPoint.x;
-        double translationY = (canvasSize.height / 2.0) - tPoint.y;
+        translationX = (canvasSize.width / 2.0) - tPoint.x;
+        translationY = (canvasSize.height / 2.0) - tPoint.y;
 
         for (Feature f : projection.features) {
             if (f == null || f.geometry == null)
@@ -183,5 +186,48 @@ public class MapView {
             seq[2 * i + 1] = (int) (p.y + ty);
         }
         return seq;
+    }
+
+    /**
+     * Translates between the projection and canvas pixels.
+     */
+    private class Translation {
+
+        /**
+         * The translation in x direction:
+         * canvas.width / 2 - projectedCenter.x
+         */
+        double x;
+
+        /**
+         * The translation in y direction:
+         * canvas.height / 2 - projectedCenter.y
+         */
+        double y;
+
+        /**
+         * The center of the map in WGS 84 coordinates.
+         */
+        final Point center = new Point();
+
+        void update(Rectangle canvasSize, int zoom) {
+            Point t = center.clone();
+            WebMercator.project(t, zoom);
+            x = (canvasSize.width / 2.0) - t.x;
+            y = (canvasSize.height / 2.0) - t.y;
+        }
+
+        int[] translate(Polygon polygon) {
+            if (polygon == null || polygon.rings.size() < 1)
+                return null;
+            LineString ring = polygon.rings.get(0);
+            int[] seq = new int[ring.points.size() * 2];
+            for (int i = 0; i < ring.points.size(); i++) {
+                Point p = ring.points.get(i);
+                seq[2 * i] = (int) (p.x + x);
+                seq[2 * i + 1] = (int) (p.y + y);
+            }
+            return seq;
+        }
     }
 }

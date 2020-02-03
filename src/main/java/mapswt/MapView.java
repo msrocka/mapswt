@@ -1,7 +1,16 @@
 package mapswt;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
@@ -44,12 +53,45 @@ public class MapView {
                 zoomOut();
             }
         });
+
+        Point dragPoint = new Point();
+        AtomicBoolean dragMode = new AtomicBoolean(false);
+        canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseDown(MouseEvent e) {
+                dragPoint.x = e.x;
+                dragPoint.y = e.y;
+                dragMode.set(true);
+
+                canvas.setCursor(
+                        canvas.getDisplay().getSystemCursor(SWT.CURSOR_SIZEALL));
+            }
+
+            @Override
+            public void mouseUp(MouseEvent e) {
+                if (!dragMode.get())
+                    return;
+                int dx = (int) (dragPoint.x - e.x);
+                int dy = (int) (dragPoint.y - e.y);
+                if (dx != 0 || dy != 0) {
+                    Rectangle r = canvas.getBounds();
+                    translation.updateCenter(
+                            r.width / 2 + dx,
+                            r.height / 2 + dy, zoom);
+                }
+                canvas.redraw();
+                dragMode.set(false);
+                canvas.setCursor(
+                        canvas.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+            }
+        });
+
     }
 
     public void zoomIn() {
         if (zoom >= 21)
             return;
-        zoom+=1;
+        zoom += 1;
         projection = WebMercator.apply(features, zoom);
         canvas.redraw();
     }
@@ -215,5 +257,9 @@ public class MapView {
             }
             return seq;
         }
+    }
+
+    private class DragSupport extends MouseAdapter {
+
     }
 }

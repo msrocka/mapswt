@@ -72,6 +72,33 @@ public class MapView {
 
     public void show(FeatureCollection coll, String parameter) {
         features = coll;
+        if (coll == null) {
+            projection = null;
+            return;
+        }
+        Bounds bounds = Bounds.of(coll);
+        Point center = bounds.center();
+        translation.center.x = center.x;
+        translation.center.y = center.y;
+
+        // try to find a good initial zoom
+        Rectangle canvSize = canvas.getBounds();
+        for (int z = 0; z < 21; z++) {
+            zoom = z;
+            Point topLeft = new Point();
+            topLeft.x = bounds.minX;
+            topLeft.y = bounds.minY;
+            Point bottomRight = new Point();
+            bottomRight.x = bounds.maxX;
+            bottomRight.y = bounds.maxY;
+            WebMercator.project(topLeft, z);
+            WebMercator.project(bottomRight, z);
+            if ((bottomRight.x - topLeft.x) > canvSize.width)
+                break;
+            if ((bottomRight.y - topLeft.y) > canvSize.height)
+                break;
+        }
+
         projection = WebMercator.apply(coll, zoom);
         this.parameter = parameter;
         initColors(coll, parameter);

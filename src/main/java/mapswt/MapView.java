@@ -67,28 +67,23 @@ public class MapView {
     }
 
     public void show(FeatureCollection coll) {
-        features = coll;
-        parameter = null;
-        if (colorScale != null) {
-            colorScale.dispose();
-            colorScale = null;
-        }
-        if (coll == null) {
-            projection = null;
-        } else {
-            projection = WebMercator.apply(coll, zoom);
-        }
-        canvas.redraw();
+        show(coll, null);
     }
 
     public void show(FeatureCollection coll, String parameter) {
-        if (coll == null || parameter == null) {
-            show(coll);
-            return;
-        }
         features = coll;
-        this.parameter = parameter;
         projection = WebMercator.apply(coll, zoom);
+        this.parameter = parameter;
+        initColors(coll, parameter);
+        canvas.redraw();
+    }
+
+    private void initColors(FeatureCollection coll, String parameter) {
+        if (colorScale != null) {
+            colorScale.dispose();
+        }
+        if (parameter == null)
+            return;
 
         boolean init = false;
         double min = 0;
@@ -109,12 +104,8 @@ public class MapView {
                 max = Math.max(max, v);
             }
         }
-
-        if (colorScale != null) {
-            colorScale.dispose();
-        }
-        colorScale = new ColorScale(canvas.getDisplay(), min, max);
-        canvas.redraw();
+        colorScale = new ColorScale(
+                canvas.getDisplay(), min, max);
     }
 
     private void render(GC gc) {

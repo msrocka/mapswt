@@ -13,6 +13,7 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("parse file ...");
         File file = new File("test_data/aware.geojson");
+        //File file = new File("test_data/strassenflaechen.geojson");
         FeatureCollection coll = GeoJSON.read(file);
 
         System.out.println("create map ...");
@@ -21,8 +22,8 @@ public class Main {
         shell.setSize(800, 800);
         shell.setLayout(new FillLayout());
         MapView map = new MapView(shell);
-        map.show(coll, "Annual non-agri");
-        // map.show(coll);
+        // map.show(coll, "Annual non-agri");
+        map.show(coll);
 
         shell.open();
         while (!shell.isDisposed()) {

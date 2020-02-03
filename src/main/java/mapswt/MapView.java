@@ -25,10 +25,8 @@ public class MapView {
     private FeatureCollection projection;
     private String parameter;
 
+    private final Translation translation = new Translation();
     private int zoom = 0;
-    private Point center = new Point();
-    double translationX;
-    double translationY;
 
     public MapView(Composite parent) {
         this.canvas = new Canvas(parent, SWT.NONE);
@@ -39,10 +37,7 @@ public class MapView {
         canvas.addPaintListener(e -> render(e.gc));
 
         canvas.addMouseWheelListener(e -> {
-
-            // System.out.println(e.x + ", " + e.y);
-
-
+            translation.updateCenter(e.x, e.y, zoom);
             if (e.count > 0) {
                 zoomIn();
             } else {
@@ -123,6 +118,7 @@ public class MapView {
     private void render(GC gc) {
 
         Rectangle canvasSize = canvas.getBounds();
+        translation.update(canvasSize, zoom);
 
         // white background
         gc.setBackground(white);
@@ -133,12 +129,6 @@ public class MapView {
         if (parameter == null) {
             gc.setBackground(black);
         }
-
-        // calculate the translation
-        Point tPoint = center.clone();
-        WebMercator.project(tPoint, zoom);
-        translationX = (canvasSize.width / 2.0) - tPoint.x;
-        translationY = (canvasSize.height / 2.0) - tPoint.y;
 
         for (Feature f : projection.features) {
             if (f == null || f.geometry == null)
@@ -151,7 +141,7 @@ public class MapView {
             if (!(f.geometry instanceof Polygon))
                 continue;
             Polygon polygon = (Polygon) f.geometry;
-            int[] points = translate(polygon, translationX, translationY);
+            int[] points = translation.translate(polygon);
 
             if (parameter != null) {
                 Color color = getColor(f);
@@ -173,19 +163,6 @@ public class MapView {
             return grey;
         double v = ((Number) val).doubleValue();
         return colorScale.get(v);
-    }
-
-    private int[] translate(Polygon polygon, double tx, double ty) {
-        if (polygon == null || polygon.rings.size() < 1)
-            return null;
-        LineString ring = polygon.rings.get(0);
-        int[] seq = new int[ring.points.size() * 2];
-        for (int i = 0; i < ring.points.size(); i++) {
-            Point p = ring.points.get(i);
-            seq[2 * i] = (int) (p.x + tx);
-            seq[2 * i + 1] = (int) (p.y + ty);
-        }
-        return seq;
     }
 
     /**
@@ -215,6 +192,15 @@ public class MapView {
             WebMercator.project(t, zoom);
             x = (canvasSize.width / 2.0) - t.x;
             y = (canvasSize.height / 2.0) - t.y;
+        }
+
+        void updateCenter(int canvasX, int canvasY, int zoom) {
+            Point c = new Point();
+            c.x = canvasX - x;
+            c.y = canvasY - y;
+            WebMercator.unproject(c, zoom);
+            center.x = c.x;
+            center.y = c.y;
         }
 
         int[] translate(Polygon polygon) {

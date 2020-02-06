@@ -25,7 +25,8 @@ public class Example {
         MapView map = new MapView(shell);
         
         shell.open();
-        map.addLayer(coll);
+        map.addLayer(coll)
+            .fillScale("Annual non-agri", 0, 100);
         map.update();
 
         while (!shell.isDisposed()) {

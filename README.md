@@ -1,4 +1,4 @@
-# A plain SWT map view
+# An SWT Map View
 This repository contains a map view that draws GeoJSON features directly on a
 [SWT canvas](https://www.eclipse.org/articles/Article-SWT-graphics/SWT_graphics.html).
 We will probably use this for regionalization features in openLCA. It supports
@@ -24,12 +24,7 @@ map.addLayer(watersheds)
    .fillScale("Annual non-agri");
 ```
 
-You can also set the expected parameter range, otherwise it will compute it:
-
-```java
-map.addLayer(watersheds)
-   .fillScale("Annual non-agri");
-```
+![](images/color_scale.png)
 
 ### Put a layer on top of another layer
 

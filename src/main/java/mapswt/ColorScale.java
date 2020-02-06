@@ -4,14 +4,14 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
-public class ColorScale {
+class ColorScale {
 
     private final double min;
     private final double max;
 
     private final Color[] colors;
 
-    public ColorScale(Display display, double min, double max) {
+    ColorScale(Display display, double min, double max) {
         this.min = min;
         this.max = max;
 

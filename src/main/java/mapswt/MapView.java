@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Display;
 import org.openlca.geo.geojson.Feature;
 import org.openlca.geo.geojson.FeatureCollection;
 import org.openlca.geo.geojson.LineString;
+import org.openlca.geo.geojson.MultiPolygon;
 import org.openlca.geo.geojson.Point;
 import org.openlca.geo.geojson.Polygon;
 
@@ -107,7 +108,9 @@ public class MapView {
 
         // TODO: otherwise take the layer
         // with the largest bounds
-        ref = layers.get(0).layer;
+        if (ref == null) {
+            ref = layers.get(0).layer;
+        }
 
         // calculate the center
         Bounds bounds = Bounds.of(ref);
@@ -161,22 +164,30 @@ public class MapView {
                 if (!translation.visible(f)) {
                     continue;
                 }
-                // TODO: currently only polygons are displayed
-                // TODO: fill inner rings as white polygons
-                // overlapping features can anyhow cause problems
-                if (!(f.geometry instanceof Polygon))
-                    continue;
-                Polygon polygon = (Polygon) f.geometry;
-                int[] points = translation.translate(polygon);
-                Color fillColor = config.getFillColor(f);
-                if (fillColor != null) {
-                    gc.setBackground(fillColor);
-                    gc.fillPolygon(points);
-                    gc.setBackground(config.getBorderColor());
+                if (f.geometry instanceof Polygon) {
+                    renderPolygon(gc, config, f, (Polygon) f.geometry);
+                } else if (f.geometry instanceof MultiPolygon) {
+                    MultiPolygon mp = (MultiPolygon) f.geometry;
+                    for (Polygon polygon : mp.polygons) {
+                        renderPolygon(gc, config, f, polygon);
+                    }
                 }
-                gc.drawPolygon(points);
             }
         }
+    }
+
+    private void renderPolygon(GC gc, LayerConfig conf, Feature f, Polygon geom) {
+        int[] points = translation.translate(geom);
+        Color fillColor = conf.getFillColor(f);
+        if (fillColor != null) {
+            gc.setBackground(fillColor);
+            gc.fillPolygon(points);
+            gc.setBackground(conf.getBorderColor());
+        }
+        // TODO: currently only polygons are displayed
+        // TODO: fill inner rings as white polygons
+        // overlapping features can anyhow cause problems
+        gc.drawPolygon(points);
     }
 
     /**
@@ -233,13 +244,8 @@ public class MapView {
         boolean visible(Feature f) {
             if (f == null || f.geometry == null)
                 return false;
-            // TODO: other geometries
-            if (!(f.geometry instanceof Polygon))
-                return false;
             Bounds bounds = Bounds.of(f.geometry);
             return bounds.intersects(view);
-
-            //return true;
         }
 
         int[] translate(Polygon polygon) {

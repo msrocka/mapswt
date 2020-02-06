@@ -8,10 +8,11 @@ import org.openlca.geo.geojson.FeatureCollection;
 
 public class LayerConfig {
 
-    final Display display;
-    final Color black;
-    final Color grey;
     final FeatureCollection layer;
+
+    private final Display display;
+    private final Color black;
+    private final Color grey;
 
     private Color borderColor;
     private Color fillColor;
@@ -87,8 +88,21 @@ public class LayerConfig {
     Color getFillColor(Feature feature) {
         if (fillScale == null || fillParameter == null)
             return fillColor;
-        if (feature == )
+        if (feature == null || feature.properties == null)
+            return grey;
+        Object val = feature.properties.get(fillParameter);
+        if (!(val instanceof Number))
+            return grey;
+        return fillScale.get(((Number) val).doubleValue());
     }
 
+    boolean isCenter() {
+        return center;
+    }
 
+    void dispose() {
+        if (fillScale != null) {
+            fillScale.dispose();
+        }
+    }
 }

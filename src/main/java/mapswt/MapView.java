@@ -1,5 +1,8 @@
 package mapswt;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -18,25 +21,24 @@ import org.openlca.geo.geojson.Polygon;
 public class MapView {
 
     private final Canvas canvas;
-    private final Color grey;
     private final Color white;
-    private final Color black;
 
-    private ColorScale colorScale;
-    private FeatureCollection features;
-    private FeatureCollection projection;
-    private String parameter;
+    private List<LayerConfig> layers = new ArrayList<>();
+    private List<FeatureCollection> projections = new ArrayList<>();
 
     private final Translation translation = new Translation();
     private int zoom = 0;
 
     public MapView(Composite parent) {
         this.canvas = new Canvas(parent, SWT.NONE);
-        Display disp = parent.getDisplay();
-        grey = disp.getSystemColor(SWT.COLOR_GRAY);
-        white = disp.getSystemColor(SWT.COLOR_WHITE);
-        black = disp.getSystemColor(SWT.COLOR_BLACK);
+        this.white = canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE);
         canvas.addPaintListener(e -> render(e.gc));
+
+        canvas.addDisposeListener(e -> {
+            for (LayerConfig config : layers) {
+                config.dispose();
+            }
+        });
 
         // add mouse listeners
         canvas.addMouseWheelListener(e -> {
@@ -58,7 +60,7 @@ public class MapView {
         if (zoom >= 21)
             return;
         zoom += 1;
-        projection = WebMercator.apply(features, zoom);
+        projectLayers();
         canvas.redraw();
     }
 
@@ -66,21 +68,49 @@ public class MapView {
         if (zoom == 0)
             return;
         zoom -= 1;
-        projection = WebMercator.apply(features, zoom);
+        projectLayers();
         canvas.redraw();
     }
 
-    public void show(FeatureCollection coll) {
-        show(coll, null);
+    private void projectLayers() {
+        projections.clear();
+        for (LayerConfig config : layers) {
+            FeatureCollection projection = WebMercator.apply(
+                config.layer, zoom);
+            projections.add(projection);
+        }
     }
 
-    public void show(FeatureCollection coll, String parameter) {
-        features = coll;
-        if (coll == null) {
-            projection = null;
+    public LayerConfig addLayer(FeatureCollection layer) {
+        LayerConfig config = new LayerConfig(canvas.getDisplay(), layer);
+        layers.add(config);
+        return config;
+    }
+
+    /**
+     * Find an initial zoom and center and calculate the projections.
+     */
+    private void initProjection() {
+        projections.clear();
+        if (layers.isEmpty()) {
             return;
         }
-        Bounds bounds = Bounds.of(coll);
+
+        // find the centered projection
+        FeatureCollection ref = null;
+        for (LayerConfig config : layers) {
+            if (config.isCenter()) {
+                ref = config.layer;
+                break;
+            }
+        }
+
+        // TODO: otherwise take the layer
+        // with the largest bounds
+        ref = layers.get(0).layer;
+
+        // calculate the center
+        Bounds bounds = Bounds.of(ref);
         Point center = bounds.center();
         translation.center.x = center.x;
         translation.center.y = center.y;
@@ -103,43 +133,15 @@ public class MapView {
                 break;
         }
 
-        projection = WebMercator.apply(coll, zoom);
-        this.parameter = parameter;
-        initColors(coll, parameter);
-        canvas.redraw();
-    }
-
-    private void initColors(FeatureCollection coll, String parameter) {
-        if (colorScale != null) {
-            colorScale.dispose();
-        }
-        if (parameter == null)
-            return;
-
-        boolean init = false;
-        double min = 0;
-        double max = 0;
-        for (Feature f : coll.features) {
-            if (f.properties == null || f.geometry == null)
-                continue;
-            Object val = f.properties.get(parameter);
-            if (!(val instanceof Number))
-                continue;
-            double v = ((Number) val).doubleValue();
-            if (!init) {
-                min = v;
-                max = v;
-                init = true;
-            } else {
-                min = Math.min(min, v);
-                max = Math.max(max, v);
-            }
-        }
-        colorScale = new ColorScale(
-                canvas.getDisplay(), min, max);
+        // finally, project the layers
+        projectLayers();
     }
 
     private void render(GC gc) {
+
+        if(projections.size() != layers.size()) {
+            initProjection();
+        }
 
         Rectangle canvasSize = canvas.getBounds();
         translation.update(canvasSize, zoom);
@@ -148,44 +150,33 @@ public class MapView {
         gc.setBackground(white);
         gc.fillRectangle(canvasSize);
 
-        if (projection == null)
+        if (projections.isEmpty())
             return;
-        if (parameter == null) {
-            gc.setBackground(black);
-        }
 
-        for (Feature f : projection.features) {
-            if (!translation.visible(f)) {
-                continue;
+        for (int i = 0; i < projections.size(); i++) {
+            LayerConfig config = layers.get(i);
+            gc.setBackground(config.getBorderColor());
+            FeatureCollection projection = projections.get(i);
+            for (Feature f : projection.features) {
+                if (!translation.visible(f)) {
+                    continue;
+                }
+                // TODO: currently only polygons are displayed
+                // TODO: fill inner rings as white polygons
+                // overlapping features can anyhow cause problems
+                if (!(f.geometry instanceof Polygon))
+                    continue;
+                Polygon polygon = (Polygon) f.geometry;
+                int[] points = translation.translate(polygon);
+                Color fillColor = config.getFillColor(f);
+                if (fillColor != null) {
+                    gc.setBackground(fillColor);
+                    gc.fillPolygon(points);
+                    gc.setBackground(config.getBorderColor());
+                }
+                gc.drawPolygon(points);
             }
-            // TODO: currently only polygons are displayed
-            // TODO: fill inner rings as white polygons
-            // overlapping features can anyhow cause problems
-            if (!(f.geometry instanceof Polygon))
-                continue;
-            Polygon polygon = (Polygon) f.geometry;
-            int[] points = translation.translate(polygon);
-
-            if (parameter != null) {
-                Color color = getColor(f);
-                gc.setBackground(color);
-                gc.fillPolygon(points);
-                gc.setBackground(black);
-            }
-            gc.drawPolygon(points);
         }
-    }
-
-    private Color getColor(Feature f) {
-        if (f == null || f.properties == null)
-            return grey;
-        if (colorScale == null || parameter == null)
-            return grey;
-        Object val = f.properties.get(parameter);
-        if (!(val instanceof Number))
-            return grey;
-        double v = ((Number) val).doubleValue();
-        return colorScale.get(v);
     }
 
     /**

@@ -19,14 +19,14 @@ public class Example {
         System.out.println("create map ...");
         Display display = new Display();
         Shell shell = new Shell();
-        shell.setSize(800, 800);
+        shell.setSize(800, 500);
         shell.setLayout(new FillLayout());
+        
         MapView map = new MapView(shell);
-        // map.show(coll);
-
+        
         shell.open();
-        map.show(coll, "Annual non-agri");
-        // map.show(coll);
+        map.addLayer(coll);
+        map.update();
 
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {

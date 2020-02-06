@@ -15,6 +15,8 @@ MapView map = new MapView(parent);
 map.addLayer(watersheds);
 ```
 
+![](images/simple_layer.png)
+
 ### Apply a color scale on a numeric feature parameter
 
 ```java

@@ -50,6 +50,10 @@ public class MapView {
         canvas.addMouseListener(new DragSupport());
     }
 
+    public void update() {
+        canvas.redraw();
+    }
+
     public void zoomIn() {
         if (zoom >= 21)
             return;

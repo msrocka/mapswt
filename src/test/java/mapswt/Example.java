@@ -20,10 +20,9 @@ public class Example {
         FeatureCollection berlinDistricts = GeoJSON.read(
             new File("test_data/berlin_districts.geojson"));
         FeatureCollection berlinStreets = GeoJSON.read(
-            new File("test_data/berlin_streets.geojson")); 
-        FeatureCollection berlinBuildings = GeoJSON.read(
-            new File("test_data/berlin_buildings.geojson")); 
-           
+            new File("test_data/berlin_street_areas.geojson"));
+        FeatureCollection berlinBlocks = GeoJSON.read(
+            new File("test_data/berlin_blocks.geojson"));
 
         System.out.println("create map ...");
         Display display = new Display();
@@ -32,12 +31,13 @@ public class Example {
         shell.setLayout(new FillLayout());
         
         MapView map = new MapView(shell);
-        map.addLayer(countries);
         map.addLayer(berlinDistricts)
             .center(); // center the map around this layer
-        map.addLayer(berlinBuildings)
-            .fillColor(display.getSystemColor(SWT.COLOR_DARK_MAGENTA));
-
+        map.addLayer(berlinBlocks)
+           .fillColor(display.getSystemColor(SWT.COLOR_GRAY));
+        map.addLayer(berlinStreets)
+           .fillColor(display.getSystemColor(SWT.COLOR_RED))
+           .borderColor(display.getSystemColor(SWT.COLOR_RED));
         shell.open();
 
         // drawing something after the map was painted

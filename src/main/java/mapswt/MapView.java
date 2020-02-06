@@ -158,7 +158,7 @@ public class MapView {
 
         for (int i = 0; i < projections.size(); i++) {
             LayerConfig config = layers.get(i);
-            gc.setBackground(config.getBorderColor());
+            gc.setForeground(config.getBorderColor());
             FeatureCollection projection = projections.get(i);
             for (Feature f : projection.features) {
                 if (!translation.visible(f)) {
@@ -182,7 +182,6 @@ public class MapView {
         if (fillColor != null) {
             gc.setBackground(fillColor);
             gc.fillPolygon(points);
-            gc.setBackground(conf.getBorderColor());
         }
         // TODO: currently only polygons are displayed
         // TODO: fill inner rings as white polygons

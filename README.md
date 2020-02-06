@@ -31,8 +31,14 @@ map.addLayer(watersheds)
 ### Put a layer on top of another layer
 
 ```java
-map.addLayer(countries);
-map.addLayer(streets)
-    .fillColor(display.getDefaultColor(SWT.COLOR_RED))
-    .center(); // center the 
+MapView map = new MapView(shell);
+map.addLayer(berlinDistricts)
+  .center(); // center the map around this layer
+map.addLayer(berlinBlocks)
+  .fillColor(grey);
+map.addLayer(berlinStreets)
+  .fillColor(red)
+  .borderColor(red);
 ```
+
+![](images/multiple_layers.png)

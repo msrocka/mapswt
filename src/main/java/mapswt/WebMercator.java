@@ -14,7 +14,7 @@ import org.openlca.geo.geojson.Point;
 import org.openlca.geo.geojson.Polygon;
 
 // see https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
-public class WebMercator {
+class WebMercator {
 
     private WebMercator() {
     }
@@ -23,7 +23,7 @@ public class WebMercator {
      * Projects a WGS 84 (longitude, latitude)-point to a (x,y)- pixel
      * coordinate. It directly mutates the coordinates of the point.
      */
-    public static void project(Point p, int zoom) {
+    static void project(Point p, int zoom) {
         if (p == null)
             return;
         double lon = p.x;
@@ -51,7 +51,7 @@ public class WebMercator {
      * latitude)-point from a pixel coordinate. It directly mutates the
      * given point.
      */
-    public static void unproject(Point p, int zoom) {
+    static void unproject(Point p, int zoom) {
         if (p == null)
             return;
         double scale = (256 / (2 * Math.PI)) * Math.pow(2, zoom);
@@ -61,7 +61,7 @@ public class WebMercator {
         p.y *= 180 / Math.PI;
     }
 
-    public static Geometry apply(Geometry geometry, int zoom) {
+    static Geometry apply(Geometry geometry, int zoom) {
         if (geometry == null)
             return null;
         Geometry g = geometry.clone();
@@ -69,7 +69,7 @@ public class WebMercator {
         return g;
     }
 
-    public static Feature apply(Feature feature, int zoom) {
+    static Feature apply(Feature feature, int zoom) {
         if (feature == null)
             return null;
         Feature f = feature.clone();
@@ -79,7 +79,7 @@ public class WebMercator {
         return f;
     }
 
-    public static FeatureCollection apply(FeatureCollection coll, int zoom) {
+    static FeatureCollection apply(FeatureCollection coll, int zoom) {
         if (coll == null)
             return null;
         FeatureCollection c = coll.clone();

@@ -235,7 +235,7 @@ public class MapView {
             center.y = c.y;
         }
 
-        public boolean visible(Feature f) {
+        boolean visible(Feature f) {
             if (f == null || f.geometry == null)
                 return false;
             // TODO: other geometries

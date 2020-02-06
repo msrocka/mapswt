@@ -12,8 +12,8 @@ import org.openlca.geo.geojson.GeoJSON;
 public class Main {
     public static void main(String[] args) {
         System.out.println("parse file ...");
-        // File file = new File("test_data/aware.geojson");
-        File file = new File("test_data/strassenflaechen.geojson");
+        File file = new File("test_data/aware.geojson");
+        // File file = new File("test_data/countries.geojson");
         FeatureCollection coll = GeoJSON.read(file);
 
         System.out.println("create map ...");
@@ -25,8 +25,8 @@ public class Main {
         // map.show(coll);
 
         shell.open();
-        // map.show(coll, "Annual non-agri");
-        map.show(coll);
+        map.show(coll, "Annual non-agri");
+        // map.show(coll);
 
         while (!shell.isDisposed()) {
             if (!display.readAndDispatch()) {

@@ -4,6 +4,7 @@ package mapswt;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -13,31 +14,40 @@ import org.openlca.geo.geojson.GeoJSON;
 public class Example {
     public static void main(String[] args) {
         System.out.println("parse files ...");
-        // File file = new File("test_data/aware.geojson");
-        
+
+        // nice example data can be found here
+        // https://github.com/martynafford/natural-earth-geojson
+        FeatureCollection land = GeoJSON.read(
+                new File("test_data/ne_50m_land.json"));
+        FeatureCollection lakes = GeoJSON.read(
+                new File("test_data/ne_50m_lakes.json"));
+        FeatureCollection ocean = GeoJSON.read(
+                new File("test_data/ne_50m_ocean.json"));
         FeatureCollection countries = GeoJSON.read(
-            new File("test_data/countries.geojson"));
-        FeatureCollection berlinDistricts = GeoJSON.read(
-            new File("test_data/berlin_districts.geojson"));
-        FeatureCollection berlinStreets = GeoJSON.read(
-            new File("test_data/berlin_street_areas.geojson"));
-        FeatureCollection berlinBlocks = GeoJSON.read(
-            new File("test_data/berlin_blocks.geojson"));
+                new File("test_data/ne_50m_admin_0_countries.json"));
+
 
         System.out.println("create map ...");
         Display display = new Display();
         Shell shell = new Shell();
         shell.setSize(800, 500);
         shell.setLayout(new FillLayout());
-        
+
+        Color brown = new Color(display, 255, 243, 224);
+        Color blue = new Color(display, 227, 242, 253);
+
         MapView map = new MapView(shell);
-        map.addLayer(berlinDistricts)
-            .center(); // center the map around this layer
-        map.addLayer(berlinBlocks)
-           .fillColor(display.getSystemColor(SWT.COLOR_GRAY));
-        map.addLayer(berlinStreets)
-           .fillColor(display.getSystemColor(SWT.COLOR_RED))
-           .borderColor(display.getSystemColor(SWT.COLOR_RED));
+        map.addLayer(ocean)
+                .fillColor(blue)
+                .borderColor(blue);
+        map.addLayer(land)
+                .fillColor(brown)
+                .center(); // center the map around this layer
+        map.addLayer(lakes)
+                .fillColor(blue)
+                .borderColor(blue);
+        map.addLayer(countries);
+
         shell.open();
 
         // drawing something after the map was painted
@@ -52,5 +62,7 @@ public class Example {
             }
         }
         display.dispose();
+        blue.dispose();
+        brown.dispose();
     }
 }

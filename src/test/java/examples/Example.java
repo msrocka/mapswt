@@ -1,4 +1,4 @@
-package org.openlca.app.components.mapview;
+package examples;
 
 
 import java.io.File;
@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.openlca.app.components.mapview.MapView;
 import org.openlca.app.util.Colors;
 import org.openlca.geo.geojson.FeatureCollection;
 import org.openlca.geo.geojson.GeoJSON;

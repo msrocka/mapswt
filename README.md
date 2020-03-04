@@ -8,6 +8,17 @@ zooming, dragging, colors etc. it depends only on
 
 ## Usage
 
+### Adding base layers
+Basic map layers for water, land, and country borders can be added via
+`addBaseLayers`:
+
+```java
+MapView map = new MapView(parent);
+map.addBaseLayers();
+```
+
+![](./images/base_layers.png)
+
 ### Adding a layer
 
 ```java

@@ -1,18 +1,13 @@
-package mapswt;
+package org.openlca.app.components.mapview;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
+import org.openlca.app.util.Colors;
 import org.openlca.geo.geojson.Feature;
 import org.openlca.geo.geojson.FeatureCollection;
 
 public class LayerConfig {
 
     final FeatureCollection layer;
-
-    private final Display display;
-    private final Color black;
-    private final Color grey;
 
     private Color borderColor;
     private Color fillColor;
@@ -21,11 +16,8 @@ public class LayerConfig {
 
     private String fillParameter;
 
-    LayerConfig(Display display, FeatureCollection layer) {
+    LayerConfig(FeatureCollection layer) {
         this.layer = layer;
-        this.display = display;
-        this.black = display.getSystemColor(SWT.COLOR_BLACK);
-        this.grey = display.getSystemColor(SWT.COLOR_GRAY);
     }
 
     // public configuration function
@@ -59,9 +51,9 @@ public class LayerConfig {
     }
 
     public LayerConfig fillScale(String parameter, double min, double max) {
-       this.fillParameter = parameter;
-       this.fillScale = new ColorScale(display, min, max);
-       return this;
+        this.fillParameter = parameter;
+        this.fillScale = new ColorScale(min, max);
+        return this;
     }
 
     public LayerConfig borderColor(Color c) {
@@ -78,8 +70,8 @@ public class LayerConfig {
 
     Color getBorderColor() {
         return borderColor != null
-            ? borderColor
-            : black;
+                ? borderColor
+                : Colors.black();
     }
 
     /**
@@ -89,10 +81,10 @@ public class LayerConfig {
         if (fillScale == null || fillParameter == null)
             return fillColor;
         if (feature == null || feature.properties == null)
-            return grey;
+            return Colors.darkGray();
         Object val = feature.properties.get(fillParameter);
         if (!(val instanceof Number))
-            return grey;
+            return Colors.darkGray();
         return fillScale.get(((Number) val).doubleValue());
     }
 
@@ -100,9 +92,4 @@ public class LayerConfig {
         return center;
     }
 
-    void dispose() {
-        if (fillScale != null) {
-            fillScale.dispose();
-        }
-    }
 }

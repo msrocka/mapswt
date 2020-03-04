@@ -1,4 +1,4 @@
-package mapswt;
+package org.openlca.app.util;
 
 import java.util.HashMap;
 
@@ -20,7 +20,7 @@ public class Colors {
 
     private static Display display;
 
-    static void setDisplay(Display display) {
+    public static void setDisplay(Display display) {
         if (display == null || Colors.display != null)
             return;
         Colors.display = display;

@@ -12,6 +12,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.openlca.geo.calc.Bounds;
+import org.openlca.geo.calc.WebMercator;
 import org.openlca.geo.geojson.Feature;
 import org.openlca.geo.geojson.FeatureCollection;
 import org.openlca.geo.geojson.LineString;
@@ -76,7 +78,7 @@ public class MapView {
     private void projectLayers() {
         projections.clear();
         for (LayerConfig config : layers) {
-            FeatureCollection projection = WebMercator.apply(
+            FeatureCollection projection = WebMercator.project(
                 config.layer, zoom);
             projections.add(projection);
         }
@@ -128,8 +130,8 @@ public class MapView {
             Point bottomRight = new Point();
             bottomRight.x = bounds.maxX;
             bottomRight.y = bounds.maxY;
-            WebMercator.project(topLeft, z);
-            WebMercator.project(bottomRight, z);
+            WebMercator.apply(topLeft, z);
+            WebMercator.apply(bottomRight, z);
             if ((bottomRight.x - topLeft.x) > canvSize.width)
                 break;
             if ((bottomRight.y - topLeft.y) > canvSize.height)
@@ -219,7 +221,7 @@ public class MapView {
 
         void update(Rectangle canvasSize, int zoom) {
             Point t = center.clone();
-            WebMercator.project(t, zoom);
+            WebMercator.apply(t, zoom);
             double cWidth = canvasSize.width / 2.0;
             double cHeight = canvasSize.height / 2.0;
             x = cWidth - t.x;
@@ -235,7 +237,7 @@ public class MapView {
             Point c = new Point();
             c.x = canvasX - x;
             c.y = canvasY - y;
-            WebMercator.unproject(c, zoom);
+            WebMercator.inverse(c, zoom);
             center.x = c.x;
             center.y = c.y;
         }

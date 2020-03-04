@@ -3,7 +3,6 @@ package mapswt;
 
 import java.io.File;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -17,6 +16,7 @@ public class Example {
 
         // nice example data can be found here
         // https://github.com/martynafford/natural-earth-geojson
+        /*
         FeatureCollection land = GeoJSON.read(
                 new File("test_data/ne_50m_land.json"));
         FeatureCollection lakes = GeoJSON.read(
@@ -25,7 +25,10 @@ public class Example {
                 new File("test_data/ne_50m_ocean.json"));
         FeatureCollection countries = GeoJSON.read(
                 new File("test_data/ne_50m_admin_0_countries.json"));
+        */
 
+        FeatureCollection aware = GeoJSON.read(
+                new File("test_data/aware.geojson"));
 
         System.out.println("create map ...");
         Display display = new Display();
@@ -37,6 +40,8 @@ public class Example {
         Color blue = new Color(display, 227, 242, 253);
 
         MapView map = new MapView(shell);
+
+        /*
         map.addLayer(ocean)
                 .fillColor(blue)
                 .borderColor(blue);
@@ -47,6 +52,11 @@ public class Example {
                 .fillColor(blue)
                 .borderColor(blue);
         map.addLayer(countries);
+
+         */
+        map.addLayer(aware)
+                .fillScale("Annual non-agri")
+                .center();
 
         shell.open();
 

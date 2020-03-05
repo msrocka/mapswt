@@ -16,7 +16,7 @@ class ColorScale {
         this.max = max;
 
         if (min == max) {
-            colors = new Color[]{Colors.get(30, 1, 1)};
+            colors = new Color[]{Colors.get(new RGB(30f, 1f, 1f))};
         } else {
             colors = new Color[100];
             // blue => white

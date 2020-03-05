@@ -2,13 +2,9 @@ package examples;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 
-import com.google.common.util.concurrent.AtomicDouble;
-import gnu.trove.impl.hash.TLongDoubleHash;
+import com.google.common.primitives.Doubles;
 import gnu.trove.map.hash.TLongDoubleHashMap;
-import org.apache.commons.collections.map.SingletonMap;
-import org.msgpack.core.MessagePack;
 import org.openlca.core.database.IDatabase;
 import org.openlca.core.database.LocationDao;
 import org.openlca.core.database.ProductSystemDao;
@@ -16,11 +12,11 @@ import org.openlca.core.database.derby.DerbyDatabase;
 import org.openlca.core.math.CalculationSetup;
 import org.openlca.core.math.SystemCalculator;
 import org.openlca.core.matrix.IndexFlow;
-import org.openlca.core.model.Flow;
 import org.openlca.core.model.Location;
 import org.openlca.core.model.ProductSystem;
 import org.openlca.core.model.descriptors.FlowDescriptor;
 import org.openlca.core.results.ContributionResult;
+import org.openlca.geo.calc.Bounds;
 import org.openlca.geo.geojson.Feature;
 import org.openlca.geo.geojson.FeatureCollection;
 import org.openlca.geo.geojson.MsgPack;
@@ -54,7 +50,7 @@ public class CalculationExample {
         ContributionResult r = calc.calculateContributions(setup);
 
         // calculate the location contributions of a flow
-        IndexFlow f = r.flowIndex.at(0);
+        IndexFlow f = r.flowIndex.at(1042);
         FlowDescriptor flow = f.flow;
         TLongDoubleHashMap contributions = new TLongDoubleHashMap();
         r.flowIndex.each((i, iFlow) -> {
@@ -85,6 +81,16 @@ public class CalculationExample {
             feature.properties = Collections.singletonMap("r", val);
             coll.features.add(feature);
         }
+        coll.features.sort((f1, f2) -> {
+            Bounds b1 = Bounds.of(f1);
+            Bounds b2 = Bounds.of(f2);
+            double a1 = Math.abs(b1.maxX - b1.minX)
+                    * Math.abs(b1.maxY - b1.minY);
+            double a2 = Math.abs(b2.maxX - b2.minX)
+                    * Math.abs(b2.maxY - b2.minY);
+            return -Doubles.compare(a1, a2);
+        });
+
         Examples.withMap(map -> {
             map.addBaseLayers();
             map.addLayer(coll)

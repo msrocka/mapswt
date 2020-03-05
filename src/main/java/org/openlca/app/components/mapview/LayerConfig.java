@@ -52,7 +52,7 @@ public class LayerConfig {
 
     public LayerConfig fillScale(String parameter, double min, double max) {
         this.fillParameter = parameter;
-        this.fillScale = ColorScale.classic(min, max);
+        this.fillScale = new ColorScale(min, max);
         return this;
     }
 
@@ -92,4 +92,17 @@ public class LayerConfig {
         return center;
     }
 
+    private class ColorScale {
+
+        private final double refVal;
+
+        public ColorScale(double min, double max) {
+            refVal = Math.max(Math.abs(min), Math.abs(max));
+        }
+
+        public Color get(double val) {
+            double share = val / refVal;
+            return Colors.getForContribution(share);
+        }
+    }
 }

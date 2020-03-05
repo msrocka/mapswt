@@ -16,21 +16,62 @@ import org.slf4j.LoggerFactory;
  */
 public class Colors {
 
-    private static final HashMap<RGBA, Color> createdColors = new HashMap<>();
+    private static HashMap<RGBA, Color> createdColors = new HashMap<>();
 
     private static Display display;
+
+    private static RGB[] chartColors = {
+            new RGB(229, 48, 57),
+            new RGB(41, 111, 196),
+            new RGB(255, 201, 35),
+            new RGB(82, 168, 77),
+            new RGB(132, 76, 173),
+            new RGB(127, 183, 229),
+            new RGB(255, 137, 0),
+            new RGB(128, 0, 128),
+            new RGB(135, 76, 63),
+            new RGB(252, 255, 100),
+            new RGB(0, 177, 241),
+            new RGB(112, 187, 40),
+            new RGB(18, 89, 133),
+            new RGB(226, 0, 115),
+            new RGB(255, 255, 85),
+            new RGB(218, 0, 24),
+            new RGB(0, 111, 154),
+            new RGB(255, 153, 0)
+    };
+
+    private static final RGB[] contributionColors = {
+            new RGB(0, 150, 0),
+            new RGB(0, 100, 180),
+            new RGB(0, 150, 230),
+            new RGB(255, 0, 0)
+    };
 
     public static void setDisplay(Display display) {
         if (display == null || Colors.display != null)
             return;
         Colors.display = display;
-        display.disposeExec(() -> {
-            createdColors.values().forEach(c -> {
-                if (c != null && !c.isDisposed()) {
-                    c.dispose();
-                }
-            });
-        });
+        display.disposeExec(() -> createdColors.values().forEach(c -> {
+            if (c != null && !c.isDisposed()) {
+                c.dispose();
+            }
+        }));
+    }
+
+    /**
+     * Returns the defined chart color for the given index. If the index is out of
+     * the range of the pre-defined colors, a random color is returned.
+     */
+    public static Color getForChart(int idx) {
+        if (idx >= 0 && idx < chartColors.length) {
+            RGB rgb = chartColors[idx];
+            return get(rgb);
+        }
+        int blue = 255 / Math.abs(idx);
+        int red = 255 - blue;
+        int green = (blue + red) / 2;
+        return get(red, green, blue, 255);
     }
 
     public static Color errorColor() {
@@ -119,6 +160,51 @@ public class Colors {
 
     public static Color systemColor(int swtConstant) {
         return display.getSystemColor(swtConstant);
+    }
+
+    /**
+     * Gets the contribution color for the given ratio which must be in a range of
+     * [-1, 1].
+     */
+    public static Color getForContribution(double ratio) {
+        int perc = (int) (ratio * 100);
+        if (perc < -100) {
+            perc = -100;
+        }
+        if (perc > 100) {
+            perc = 100;
+        }
+        int value = perc + 100;
+
+        int prev = 0;
+        int index = 0;
+        int[] conSteps = {80, 40, 81};
+        double steps = 0;
+        for (int step : conSteps) {
+            steps = step;
+            if (value < step + prev) {
+                break;
+            } else {
+                index++;
+                prev += step;
+            }
+        }
+        value = value - prev;
+
+        RGB startColor = contributionColors[index];
+        RGB endColor = contributionColors[index + 1];
+
+        double diffRed = endColor.red - startColor.red;
+        double diffGreen = endColor.green - startColor.green;
+        double diffBlue = endColor.blue - startColor.blue;
+        double step = value % steps;
+        step /= steps;
+
+        int red = (int) (startColor.red + step * diffRed);
+        int green = (int) (startColor.green + step * diffGreen);
+        int blue = (int) (startColor.blue + step * diffBlue);
+
+        return get(red, green, blue);
     }
 
 }

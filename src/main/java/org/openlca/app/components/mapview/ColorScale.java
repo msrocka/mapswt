@@ -11,27 +11,54 @@ class ColorScale {
 
     private final Color[] colors;
 
-    ColorScale(double min, double max) {
+    private ColorScale(double min, double max, Color[] colors) {
         this.min = min;
         this.max = max;
+        this.colors = colors;
+    }
 
+    static ColorScale magenta(double min, double max) {
+        Color[] colors;
         if (min == max) {
-            colors = new Color[]{Colors.get(new RGB(30f, 1f, 1f))};
+            colors = new Color[]{Colors.get(new RGB(0f, 1f, 1f), 100)};
         } else {
-            colors = new Color[100];
-            // blue => white
-            for (int i = 0; i < 50; i++) {
-                double s = 1 - i * (0.9 / 49);
-                RGB rgb = new RGB(197f, (float) s, 1f);
-                colors[i] = Colors.get(rgb);
-            }
-            // white => orange
-            for (int i = 50; i < 100; i++) {
-                double s = 0.1 + (i - 50) * (0.9 / 49);
-                RGB rgb = new RGB(30f, (float) s, 1f);
-                colors[i] = Colors.get(rgb);
+            colors = new Color[25];
+            float h = 60;
+            for (int i = 0; i < 25; i++) {
+                colors[i] = Colors.get(new RGB(h, 1f, 1f));
+                if (h > 0) {
+                    h -= 5f;
+                } else {
+                    h = 355;
+                }
             }
         }
+        return new ColorScale(min, max, colors);
+    }
+
+    static ColorScale classic(double min, double max) {
+        if (min == max) {
+            Color[] colors = new Color[]{Colors.get(new RGB(0f, 1f, 1f), 100)};
+            return new ColorScale(min, max, colors);
+        }
+        Color[] colors = colors = new Color[25];
+
+        float h;
+        float step;
+        if (min < 0 && max > 0) {
+            // green -> blue -> red
+            h = 120;
+            step = 10;
+        } else {
+            // blue -> red
+            h = 240;
+            step = 5;
+        }
+        for (int i = 0; i < 25; i++) {
+            colors[i] = Colors.get(new RGB(h, 1f, 1f));
+            h += step;
+        }
+        return new ColorScale(min, max, colors);
     }
 
     public Color get(double val) {

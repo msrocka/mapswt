@@ -47,6 +47,11 @@ public class Colors {
         return get(rgba);
     }
 
+    public static Color get(RGB rgb, int a) {
+        RGBA rgba = new RGBA(rgb.red, rgb.green, rgb.blue, a);
+        return get(rgba);
+    }
+
     public static Color get(int r, int g, int b, int a) {
         return get(new RGBA(r, g, b, a));
     }

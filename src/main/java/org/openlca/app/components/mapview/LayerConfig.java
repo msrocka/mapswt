@@ -52,7 +52,7 @@ public class LayerConfig {
 
     public LayerConfig fillScale(String parameter, double min, double max) {
         this.fillParameter = parameter;
-        this.fillScale = new ColorScale(min, max);
+        this.fillScale = ColorScale.classic(min, max);
         return this;
     }
 

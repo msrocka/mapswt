@@ -50,7 +50,7 @@ public class CalculationExample {
         ContributionResult r = calc.calculateContributions(setup);
 
         // calculate the location contributions of a flow
-        IndexFlow f = r.flowIndex.at(1042);
+        IndexFlow f = r.flowIndex.at(999);
         FlowDescriptor flow = f.flow;
         TLongDoubleHashMap contributions = new TLongDoubleHashMap();
         r.flowIndex.each((i, iFlow) -> {

@@ -30,7 +30,7 @@ public class Example {
         */
 
         FeatureCollection aware = GeoJSON.read(
-                new File("test_data/aware.geojson"));
+                new File("raw_data/aware.geojson"));
 
         System.out.println("create map ...");
         Display display = new Display();

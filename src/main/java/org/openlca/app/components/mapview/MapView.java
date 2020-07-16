@@ -28,6 +28,7 @@ import org.openlca.geo.geojson.MultiPoint;
 import org.openlca.geo.geojson.MultiPolygon;
 import org.openlca.geo.geojson.Point;
 import org.openlca.geo.geojson.Polygon;
+import org.openlca.geo.geojson.ProtoPack;
 import org.openlca.util.BinUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +109,7 @@ public class MapView {
             try {
                 InputStream stream = getClass().getResourceAsStream(file);
                 byte[] data = BinUtils.gunzip(BinUtils.read(stream));
-                return MsgPack.unpack(data);
+                return ProtoPack.unpack(data);
             } catch (Exception e) {
                 Logger log = LoggerFactory.getLogger(getClass());
                 log.error("failed to add base layer" + file, e);
@@ -117,15 +118,15 @@ public class MapView {
         };
         Color blue = Colors.get(170, 218, 255);
         Color brown = Colors.get(249, 246, 231);
-        addLayer(fn.apply("oceans.msgpack.gz"))
+        addLayer(fn.apply("oceans.protopack.gz"))
                 .fillColor(blue)
                 .borderColor(blue);
-        addLayer(fn.apply("land.msgpack.gz"))
+        addLayer(fn.apply("land.protopack.gz"))
                 .fillColor(brown);
-        addLayer(fn.apply("lakes.msgpack.gz"))
+        addLayer(fn.apply("lakes.protopack.gz"))
                 .fillColor(blue)
                 .borderColor(blue);
-        addLayer(fn.apply("countries.msgpack.gz"));
+        addLayer(fn.apply("countries.protopack.gz"));
     }
 
     /**

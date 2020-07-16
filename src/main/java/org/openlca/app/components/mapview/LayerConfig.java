@@ -92,7 +92,7 @@ public class LayerConfig {
         return center;
     }
 
-    private class ColorScale {
+    private static class ColorScale {
 
         private final double refVal;
 

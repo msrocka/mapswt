@@ -16,11 +16,11 @@ import org.slf4j.LoggerFactory;
  */
 public class Colors {
 
-    private static HashMap<RGBA, Color> createdColors = new HashMap<>();
+    private static final HashMap<RGBA, Color> createdColors = new HashMap<>();
 
     private static Display display;
 
-    private static RGB[] chartColors = {
+    private static final RGB[] chartColors = {
             new RGB(229, 48, 57),
             new RGB(41, 111, 196),
             new RGB(255, 201, 35),

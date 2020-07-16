@@ -37,8 +37,8 @@ public class MapView {
     private final Canvas canvas;
     private final Color white;
 
-    private List<LayerConfig> layers = new ArrayList<>();
-    private List<FeatureCollection> projections = new ArrayList<>();
+    private final List<LayerConfig> layers = new ArrayList<>();
+    private final List<FeatureCollection> projections = new ArrayList<>();
 
     private final Translation translation = new Translation();
     private int zoom = 0;
@@ -293,7 +293,7 @@ public class MapView {
     /**
      * Translates between the projection and canvas pixels.
      */
-    private class Translation {
+    private static class Translation {
 
         /**
          * The translation in x direction: canvas.width / 2 - projectedCenter.x

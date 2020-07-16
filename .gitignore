@@ -4,7 +4,7 @@
 .classpath
 .project
 *.iml
-/test_data/
+/raw_data/
 /.vscode/
 
 /lib/

@@ -108,8 +108,7 @@ public class MapView {
         Function<String, FeatureCollection> fn = (file) -> {
             try {
                 InputStream stream = getClass().getResourceAsStream(file);
-                byte[] data = BinUtils.gunzip(BinUtils.read(stream));
-                return ProtoPack.unpack(data);
+                return ProtoPack.unpackgz(BinUtils.read(stream));
             } catch (Exception e) {
                 Logger log = LoggerFactory.getLogger(getClass());
                 log.error("failed to add base layer" + file, e);
